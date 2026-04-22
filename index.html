@@ -1069,28 +1069,35 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
     -webkit-overflow-scrolling: touch;
   }
 
-  /* ── 평당매출 내부 레이아웃: 모바일에서 세로 스택 ── */
-  /* body(body의 자식) 영역이 flex:row → 세로로 전환 */
-  #salesWrap > div[style*="flex:1;display:flex;overflow:hidden"] {
-    flex-direction: column !important;
-  }
-  /* 도면 컬럼: 고정 높이로 위쪽에 배치 */
+  /* ── 평당매출 내부: 도면 풀스크린 + 분석패널 오버레이 ── */
   #salesMapCol {
-    flex: none !important;
     width: 100% !important;
-    height: 55dvh !important;
-    overflow: auto !important;
-    -webkit-overflow-scrolling: touch;
+    flex: 1 !important;
+    min-width: 0 !important;
   }
-  /* 분석표 컬럼(tblCol): JS inline width:420px 무력화, 아래로 배치 */
+  /* 분석패널: 기본 숨김 → JS 토글로 오픈 */
   #salesWrap [data-sales-panel] {
+    position: fixed !important;
+    bottom: 0; left: 0; right: 0;
     width: 100% !important;
-    flex-shrink: 1 !important;
-    border-left: none !important;
-    border-top: 2px solid #e5e7eb !important;
-    max-height: 45dvh;
+    max-height: 60dvh !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+    border-left: none !important;
+    border-top: 2px solid #005233 !important;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.2);
+    z-index: 600;
+    transform: translateY(100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    flex-shrink: 0 !important;
+  }
+  #salesWrap [data-sales-panel].mobile-panel-open {
+    transform: translateY(0) !important;
+  }
+  /* 도면 바디 row → 정상 flex(도면이 꽉 참) */
+  #salesWrap > div > div[style*="display:flex;overflow:hidden"] {
+    min-height: 0 !important;
   }
 
   /* ── 헤더 ── */
@@ -16383,6 +16390,131 @@ function psuAutoFillDays() {
     if (!rp || !rp.classList.contains('mobile-open')) return;
     if (e.changedTouches[0].clientY - startY > 60) rp.classList.remove('mobile-open');
   }, { passive: true });
+})();
+</script>
+
+<script>
+/* ══════════════════════════════════════════
+   📱 평당매출 탭 모바일 패치
+   - 도면 풀스크린 표시
+   - 분석패널(공간효율/순위/개선/목록/그룹) 하단 오버레이 토글
+══════════════════════════════════════════ */
+(function() {
+  function isMobile() { return window.innerWidth <= 768; }
+
+  /* renderSalesView 완료 후 모바일 패치 주입 */
+  var _origRenderSalesView = window.renderSalesView;
+  window.renderSalesView = function() {
+    var result = _origRenderSalesView ? _origRenderSalesView.apply(this, arguments) : undefined;
+    if (isMobile()) {
+      setTimeout(patchSalesMobile, 80);
+    }
+    return result;
+  };
+
+  function patchSalesMobile() {
+    var salesWrap = document.getElementById('salesWrap');
+    if (!salesWrap || salesWrap.style.display === 'none') return;
+
+    var tblCol = salesWrap.querySelector('[data-sales-panel]');
+    if (!tblCol) return;
+
+    /* 기존 토글 버튼 제거 (재렌더 시 중복 방지) */
+    var old = document.getElementById('mSalesPanelToggle');
+    if (old) old.remove();
+    var oldClose = document.getElementById('mSalesPanelClose');
+    if (oldClose) oldClose.remove();
+
+    /* ── 분석패널 닫힘 상태 핸들 추가 ── */
+    var handle = tblCol.querySelector('#mSalesPanelHandle');
+    if (!handle) {
+      handle = document.createElement('div');
+      handle.id = 'mSalesPanelHandle';
+      handle.style.cssText = [
+        'width:36px;height:4px;background:#d1d5db;border-radius:2px;',
+        'margin:8px auto 4px;flex-shrink:0;cursor:pointer;'
+      ].join('');
+      tblCol.insertBefore(handle, tblCol.firstChild);
+    }
+    handle.onclick = function() { closePanel(); };
+
+    /* ── 플로팅 토글 버튼 (도면 위 고정) ── */
+    var toggleBtn = document.createElement('button');
+    toggleBtn.id = 'mSalesPanelToggle';
+    toggleBtn.style.cssText = [
+      'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);',
+      'z-index:610;',
+      'background:#005233;color:#fff;',
+      'font-family:inherit;font-size:12px;font-weight:800;',
+      'padding:10px 22px;border:none;border-radius:24px;',
+      'box-shadow:0 4px 16px rgba(0,82,51,.35);',
+      'cursor:pointer;white-space:nowrap;',
+      'display:flex;align-items:center;gap:6px;',
+      'transition:opacity .2s;'
+    ].join('');
+    toggleBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg> 분석 보기';
+    toggleBtn.onclick = function() { openPanel(); };
+    document.body.appendChild(toggleBtn);
+
+    /* ── 배경 딤 레이어 ── */
+    var dim = document.getElementById('mSalesDim');
+    if (!dim) {
+      dim = document.createElement('div');
+      dim.id = 'mSalesDim';
+      dim.style.cssText = [
+        'position:fixed;inset:0;background:rgba(0,0,0,.35);',
+        'z-index:595;display:none;'
+      ].join('');
+      dim.onclick = function() { closePanel(); };
+      document.body.appendChild(dim);
+    }
+
+    function openPanel() {
+      tblCol.classList.add('mobile-panel-open');
+      dim.style.display = 'block';
+      toggleBtn.style.opacity = '0';
+      toggleBtn.style.pointerEvents = 'none';
+    }
+    function closePanel() {
+      tblCol.classList.remove('mobile-panel-open');
+      dim.style.display = 'none';
+      toggleBtn.style.opacity = '1';
+      toggleBtn.style.pointerEvents = '';
+    }
+
+    /* 스와이프 다운으로 닫기 */
+    var startY = 0;
+    tblCol.addEventListener('touchstart', function(e) {
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    tblCol.addEventListener('touchend', function(e) {
+      if (e.changedTouches[0].clientY - startY > 50) closePanel();
+    }, { passive: true });
+
+    /* 평당매출 탭에서 벗어나면 버튼/딤 제거 */
+    function cleanup() {
+      var sw = document.getElementById('salesWrap');
+      if (!sw || sw.style.display === 'none') {
+        var tb = document.getElementById('mSalesPanelToggle');
+        if (tb) tb.remove();
+        var dm = document.getElementById('mSalesDim');
+        if (dm) dm.remove();
+      }
+    }
+    /* vtab 클릭 시 cleanup */
+    document.querySelectorAll('.vtab').forEach(function(t) {
+      t.addEventListener('click', function() { setTimeout(cleanup, 100); });
+    });
+  }
+
+  /* 탭 전환 시에도 재적용 */
+  var _origSwitchTab = window.switchViewTab;
+  window.switchViewTab = function() {
+    var r = _origSwitchTab ? _origSwitchTab.apply(this, arguments) : undefined;
+    if (isMobile()) setTimeout(patchSalesMobile, 150);
+    return r;
+  };
+
 })();
 </script>
 </body>
