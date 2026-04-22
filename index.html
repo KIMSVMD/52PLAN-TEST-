@@ -12121,19 +12121,43 @@ function renderSalesPanel(container, metrics, maxPerSales, avgPerSales, totalSal
  else panel.innerHTML = '';
  };
 
- // ─── 상단: KPI 요약 스코어카드 ───
+ // ─── 상단: KPI 요약 스코어카드 (토글 가능) ───
  const sumWrap = document.createElement('div');
  sumWrap.style.cssText='flex-shrink:0;background:#fff;border-bottom:2px solid #f1f5f9;';
 
+ // 토글 상태: localStorage에서 복원
+ let _sumOpen = true;
+ try { const _sv = localStorage.getItem('salesSumPanelOpen'); if (_sv !== null) _sumOpen = _sv !== '0'; } catch(e) {}
+
+ // 토글 내용 컨테이너
+ const sumBody = document.createElement('div');
+ sumBody.id = 'salesSumBody';
+ sumBody.style.cssText = _sumOpen ? '' : 'display:none;';
+
  const sumHd = document.createElement('div');
- sumHd.style.cssText='padding:7px 14px 5px;display:flex;align-items:center;gap:6px;';
+ sumHd.style.cssText='padding:8px 14px 7px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;background:#fff;border-radius:0;transition:background .12s;';
+ sumHd.addEventListener('mouseenter', function(){sumHd.style.background='#f0fdf4';});
+ sumHd.addEventListener('mouseleave', function(){sumHd.style.background='#fff';});
+ sumHd.title = '클릭하여 접기/펼치기';
+ const _arrowSpan = '<span id="salesSumArrow" style="margin-left:auto;font-size:10px;color:#9ca3af;transition:transform .2s;display:inline-block;transform:' + (_sumOpen ? 'rotate(0deg)' : 'rotate(-90deg)') + ';">▾</span>';
  sumHd.innerHTML=
  '<span style="font-size:13px;"></span>'+
  '<div>'+
  '<div style="font-size:12px;font-weight:900;color:#111827;letter-spacing:-.3px;">공간 효율 분석</div>'+
  '<div style="font-size:9px;color:#9ca3af;margin-top:1px;">'+storeName+' · '+metrics.length+'개 구역</div>'+
- '</div>';
+ '</div>'+
+ _arrowSpan;
+
+ sumHd.addEventListener('click', function() {
+   _sumOpen = !_sumOpen;
+   sumBody.style.display = _sumOpen ? '' : 'none';
+   const arr = document.getElementById('salesSumArrow');
+   if (arr) arr.style.transform = _sumOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+   try { localStorage.setItem('salesSumPanelOpen', _sumOpen ? '1' : '0'); } catch(e) {}
+ });
+
  sumWrap.appendChild(sumHd);
+ sumWrap.appendChild(sumBody);
 
  const kpiGrid = document.createElement('div');
  kpiGrid.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;border-top:1px solid #f1f5f9;';
@@ -12214,7 +12238,7 @@ function renderSalesPanel(container, metrics, maxPerSales, avgPerSales, totalSal
  kpiGrid.appendChild(kpiEditable('','총 면적',dispArea,'평','#374151',true,'manualTotalArea'));
  kpiGrid.appendChild(kpi('','평균 평당',Math.round(dispAvg).toLocaleString()+'만','#f97316',true));
  kpiGrid.appendChild(kpi('','A등급',cGrades.A+'개','#005233',false));
- sumWrap.appendChild(kpiGrid);
+ sumBody.appendChild(kpiGrid);
 
  const total_g=cGrades.A+cGrades.B+cGrades.C||1;
  const pA=Math.round(cGrades.A/total_g*100),pB=Math.round(cGrades.B/total_g*100),pC=100-pA-pB;
@@ -12234,7 +12258,7 @@ function renderSalesPanel(container, metrics, maxPerSales, avgPerSales, totalSal
  (pB>0?'<div style="flex:'+pB+';background:#eab308;" title="B '+cGrades.B+'개"></div>':'')+
  (pC>0?'<div style="flex:'+pC+';background:#ef4444;border-radius:0 8px 8px 0;" title="C '+cGrades.C+'개"></div>':'')+
  '</div>';
- sumWrap.appendChild(gradeBar);
+ sumBody.appendChild(gradeBar);
 
  // ─── 월별 평당매출 추이 미니 차트 ───
  (function renderMonthlyTrend() {
@@ -12327,7 +12351,7 @@ function renderSalesPanel(container, metrics, maxPerSales, avgPerSales, totalSal
  info.textContent = '현재: ' + curLabel + ' · 보라색=현재 상단 월 탭 · 파란색=데이터 있음';
  trendWrap.appendChild(info);
 
- sumWrap.appendChild(trendWrap);
+ sumBody.appendChild(trendWrap);
  })();
 
  analysisCol.appendChild(sumWrap);
