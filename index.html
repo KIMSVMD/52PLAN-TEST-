@@ -1232,6 +1232,15 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   body { padding-bottom: env(safe-area-inset-bottom); }
 }
 
+/* ── 평당매출 공간효율 오버레이 ── */
+#salesEffToggleBtn:hover { background: rgba(17,24,39,0.95) !important; }
+#salesEffOverlay { pointer-events: auto; }
+#salesEffOverlay[style*="max-height: 0"] { pointer-events: none; }
+@media (max-width: 768px) {
+  #salesEffToggleBtn { font-size: 11px !important; padding: 6px 12px !important; }
+  #salesEffOverlay { max-height: 70vh !important; overflow-y: auto; }
+}
+
 /* ── 더 좁은 폰 (390px 이하) ── */
 @media (max-width: 390px) {
   .canvas-area { height: 52vh !important; padding: 5px !important; }
@@ -10313,11 +10322,8 @@ function renderSalesView() {
 
  // ① 툴바
  const toolbar = document.createElement('div');
- toolbar.style.cssText = 'background:#f3f4f6;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid #e5e7eb;flex-wrap:wrap;';
+ toolbar.style.cssText = 'background:#f3f4f6;padding:6px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;border-bottom:1px solid #e5e7eb;flex-wrap:wrap;';
  toolbar.innerHTML = `
- <span style="font-size:11px;font-weight:800;color:#374151;letter-spacing:.3px;"> 평당매출 분석</span>
- <span style="font-size:10px;color:#6b7280;background:#f3f4f6;border-radius:5px;padding:3px 10px;border:1px solid #e5e7eb;"> 평당매출 = 하루 실매출 ÷ 평수</span>
-
  <button id="salBtnDataInput" onclick="openSalesDataModal()"
  style="font-family:inherit;font-size:10px;font-weight:700;padding:4px 12px;border-radius:5px;border:1px solid #005233;background:#e6f2ed;color:#003d26;cursor:pointer;">️ 데이터 입력</button>
  <button id="salBtnExcel" onclick="openExcelUploadModal()"
@@ -10408,7 +10414,7 @@ function renderSalesView() {
  const mapCol = document.createElement('div');
  const isMobMap = window.innerWidth <= 768;
  mapCol.style.cssText = isMobMap
-   ? 'flex:none;height:52vh;overflow:auto;background:#f0ede6;position:relative;width:100%;'
+   ? 'flex:none;height:58vh;overflow:auto;background:#f0ede6;position:relative;width:100%;'
    : 'flex:1;overflow:auto;background:#f0ede6;position:relative;min-width:0;';
  mapCol.id = 'salesMapCol';
  // 평당매출 ↔ 도면 스크롤 실시간 동기화
@@ -10424,6 +10430,57 @@ function renderSalesView() {
  window._savedSalesScrollRatioY = mapCol.scrollTop / maxSY;
  });
  body.appendChild(mapCol);
+
+ // ── 공간효율 분석 오버레이 버튼 + 패널 ──
+ // mapCol 부모(body)가 position:relative이므로 absolute로 올림
+ body.style.position = 'relative'; // 확보
+
+ // 버튼: 항상 mapCol 좌상단에 보이는 작은 토글 버튼
+ const effToggleBtn = document.createElement('button');
+ effToggleBtn.id = 'salesEffToggleBtn';
+ const _effOpen = (function(){ try{ return localStorage.getItem('salesEffOverlayOpen') !== '0'; }catch(e){ return true; } })();
+ effToggleBtn.style.cssText = [
+   'position:absolute;',
+   'top:10px;left:10px;z-index:80;',
+   'font-family:inherit;font-size:10px;font-weight:800;',
+   'padding:5px 10px;border-radius:7px;',
+   'background:rgba(17,24,39,0.82);color:#fff;',
+   'border:1.5px solid rgba(255,255,255,0.18);',
+   'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);',
+   'cursor:pointer;display:flex;align-items:center;gap:5px;',
+   'box-shadow:0 2px 8px rgba(0,0,0,0.22);',
+   'white-space:nowrap;transition:background .12s;',
+ ].join('');
+ effToggleBtn.innerHTML = ' 공간효율 분석 <span id="effToggleArrow" style="font-size:9px;transition:transform .2s;display:inline-block;transform:' + (_effOpen ? 'rotate(0deg)' : 'rotate(-90deg)') + ';">▾</span>';
+
+ // 패널: mapCol 위에 absolute로 떠서 도면을 덮음 (슬라이드 다운)
+ const effOverlay = document.createElement('div');
+ effOverlay.id = 'salesEffOverlay';
+ effOverlay.style.cssText = [
+   'position:absolute;top:0;left:0;right:0;z-index:70;',
+   'background:rgba(255,255,255,0.97);',
+   'border-bottom:2px solid #005233;',
+   'backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);',
+   'overflow:hidden;',
+   'transition:max-height .3s cubic-bezier(.4,0,.2,1), opacity .25s;',
+   'max-height:' + (_effOpen ? '600px' : '0') + ';',
+   'opacity:' + (_effOpen ? '1' : '0') + ';',
+   'box-shadow:0 4px 20px rgba(0,0,0,0.12);',
+ ].join('');
+
+ effOverlay.appendChild(sumWrap);
+ body.appendChild(effOverlay);
+ body.appendChild(effToggleBtn);
+
+ effToggleBtn.addEventListener('click', function() {
+   const isOpen = effOverlay.style.maxHeight !== '0px' && effOverlay.style.maxHeight !== '0';
+   const next = !isOpen;
+   effOverlay.style.maxHeight = next ? '600px' : '0';
+   effOverlay.style.opacity = next ? '1' : '0';
+   const arr = document.getElementById('effToggleArrow');
+   if (arr) arr.style.transform = next ? 'rotate(0deg)' : 'rotate(-90deg)';
+   try { localStorage.setItem('salesEffOverlayOpen', next ? '1' : '0'); } catch(e) {}
+ });
 
  // ── 줌 컨트롤 (도면 탭과 동일한 스타일) ──
  if (!window.salesMapScale) window.salesMapScale = 0.6; // 초기 60% (도면 탭과 동일)
@@ -10582,7 +10639,7 @@ function renderSalesView() {
  const tblCol = document.createElement('div');
  const isMobSales = window.innerWidth <= 768;
  tblCol.style.cssText = isMobSales
-   ? 'width:100%;flex-shrink:0;overflow:hidden;background:#fff;border-top:2px solid #e5e7eb;border-left:none;display:flex;flex-direction:column;max-height:44vh;'
+   ? 'width:100%;flex-shrink:0;overflow:hidden;background:#fff;border-top:2px solid #e5e7eb;border-left:none;display:flex;flex-direction:column;max-height:40vh;'
    : 'width:420px;flex-shrink:0;overflow:hidden;background:#fff;border-left:2px solid #e5e7eb;display:flex;flex-direction:column;';
  tblCol.setAttribute('data-sales-panel', '1');
  body.appendChild(tblCol);
@@ -12354,9 +12411,7 @@ function renderSalesPanel(container, metrics, maxPerSales, avgPerSales, totalSal
  sumBody.appendChild(trendWrap);
  })();
 
- analysisCol.appendChild(sumWrap);
-
- // ─── 탭 바 ───
+ // ─── 탭 바 ─── (sumWrap은 도면 위 오버레이로 이동됨)
  const tabBar=document.createElement('div');
  tabBar.style.cssText='flex-shrink:0;display:flex;background:#fff;border-bottom:2px solid #f1f5f9;overflow-x:auto;scrollbar-width:none;';
  const tabContents=document.createElement('div');
