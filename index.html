@@ -1047,6 +1047,10 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   --row:58px;
  }
 
+ #zoomCtrl{
+  display:none !important;
+ }
+
  html, body {
   min-height: 100dvh;
  }
@@ -1184,19 +1188,19 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   overflow-x:auto;
   overflow-y:hidden;
   padding:2px 0 4px;
-  gap:8px;
+  gap:6px;
   min-height:unset;
   -webkit-overflow-scrolling:touch;
  }
  .wk-btn{
-  width:76px;
-  height:54px;
+  width:66px;
+  height:46px;
  }
  .wk-btn-label{
-  font-size:12px;
+  font-size:10px;
  }
  .wk-btn-sub{
-  font-size:10px;
+  font-size:8px;
  }
  .nav-info-right{
   width:100%;
@@ -1420,19 +1424,19 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
  #salesWrap .sales-mobile-toolbar #smPanelToggleInline{
   display:inline-flex !important;
   margin-left:auto;
-  min-height:30px;
-  padding:0 12px;
-  border-radius:5px;
-  border:1px solid #d1d5db;
-  background:#f8fafc;
-  color:#374151;
+  min-height:32px;
+  padding:0 14px;
+  border-radius:999px;
+  border:1px solid #cbd5e1;
+  background:#ffffff;
+  color:#0f172a;
   font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:-.1px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:-.15px;
   align-items:center;
   justify-content:center;
-  box-shadow:none;
+  box-shadow:0 1px 2px rgba(15,23,42,.06);
  }
  #salesWrap .sales-mobile-legend{
   display:none !important;
@@ -1447,6 +1451,9 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
  #omapWrap{
   flex-direction:column;
  }
+ #salesMonthNav > div > button{
+  display:none !important;
+ }
  #omapArea{
   width:100%;
   flex:1 1 auto;
@@ -1456,7 +1463,18 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
  }
  #omapArea table{
   width:max-content !important;
-  min-width:980px;
+  min-width:760px;
+  table-layout:auto !important;
+ }
+ #omapArea th{
+  padding:6px 7px !important;
+  font-size:9px !important;
+  white-space:nowrap;
+ }
+ #omapArea td{
+  padding:6px 7px !important;
+  font-size:9.5px !important;
+  line-height:1.25 !important;
  }
  #omapRpanel{
   display:none !important;
@@ -1465,11 +1483,17 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   padding:10px 8px 14px;
  }
  .nav-weeks{
-  gap:6px;
+  gap:4px;
  }
  .wk-btn{
-  width:72px;
-  height:52px;
+  width:56px;
+  height:40px;
+ }
+ .wk-btn-label{
+  font-size:9px;
+ }
+ .wk-btn-sub{
+  font-size:7px;
  }
  #seasonSummary{
   padding:0 !important;
@@ -1502,6 +1526,10 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   font-size:11px;
   font-weight:800;
  }
+}
+
+body.viewer-mode #salesMonthNav > div > button{
+ display:none !important;
 }
 
 </style>
@@ -10779,10 +10807,14 @@ function salesZoomFit() {
   const scEl = document.getElementById('salesMapScaler');
   if (!scEl || !mapCol || !gcEl || !isSalesMobileViewport()) return;
   const rawW = gcEl.offsetWidth || scEl.offsetWidth;
+  const rawH = gcEl.offsetHeight || scEl.offsetHeight;
   if (!rawW) return;
   const mw = Math.max(120, mapCol.clientWidth - 24);
+  const mh = Math.max(120, mapCol.clientHeight - 24);
   const fitW = mw / rawW;
-  window.salesMapScale = Math.min(Math.max(fitW * 0.94, 0.32), 1.05);
+  const fitH = rawH ? (mh / rawH) : fitW;
+  const fitBase = Math.min(fitW, fitH);
+  window.salesMapScale = Math.min(Math.max(fitBase * 0.82, 0.2), 0.75);
   requestAnimationFrame(function() {
    applySalesScale();
    mapCol.scrollLeft = 0;
@@ -10887,6 +10919,7 @@ function salesZoomFit() {
  document.getElementById('smZoomIn').onclick = function(e){ e.stopPropagation(); salesZoomStep(+0.1); };
  document.getElementById('smZoomFit').onclick = function(e){ e.stopPropagation(); salesZoomFit(); };
  bindSalesTouchZoom();
+ bindSalesPanelSwipeClose();
  syncSalesMobilePanelUI();
 
 
@@ -11051,6 +11084,46 @@ function setSalesMobilePanelOpen(forceOpen) {
   if (typeof window._applySalesScale === 'function') window._applySalesScale();
   if (typeof window._positionSalesZoomCtrl === 'function') window._positionSalesZoomCtrl();
  }, 80);
+}
+
+function bindSalesPanelSwipeClose() {
+ const panel = document.querySelector('#salesWrap [data-sales-panel]');
+ const handle = panel ? panel.querySelector('.sales-panel-drag-handle') : null;
+ if (!panel || !handle || handle.dataset.swipeBound === '1') return;
+ handle.dataset.swipeBound = '1';
+ let startY = 0;
+ let dragging = false;
+ let deltaY = 0;
+
+ handle.addEventListener('touchstart', function(e) {
+  if (!isSalesMobileViewport() || !window._salesMobilePanelOpen) return;
+  if (!e.touches || e.touches.length !== 1) return;
+  startY = e.touches[0].clientY;
+  deltaY = 0;
+  dragging = true;
+  panel.style.transition = 'none';
+ }, { passive:true });
+
+ handle.addEventListener('touchmove', function(e) {
+  if (!dragging || !e.touches || e.touches.length !== 1) return;
+  deltaY = Math.max(0, e.touches[0].clientY - startY);
+  if (deltaY > 0) {
+   e.preventDefault();
+   panel.style.transform = 'translateY(' + deltaY + 'px)';
+  }
+ }, { passive:false });
+
+ function finishSwipe() {
+  if (!dragging) return;
+  dragging = false;
+  panel.style.transition = '';
+  panel.style.transform = '';
+  if (deltaY > 90) setSalesMobilePanelOpen(false);
+  deltaY = 0;
+ }
+
+ handle.addEventListener('touchend', finishSwipe, { passive:true });
+ handle.addEventListener('touchcancel', finishSwipe, { passive:true });
 }
 
 if (!window._salesMobilePanelResizeBound) {
@@ -12477,8 +12550,10 @@ function renderSalesPanel(container, metrics, maxPerSales, avgPerSales, totalSal
  sumWrap.style.cssText='flex-shrink:0;background:#fff;border-bottom:2px solid #f1f5f9;';
 
  const sumHd = document.createElement('div');
- sumHd.style.cssText='padding:7px 14px 5px;display:flex;align-items:center;gap:6px;';
+ sumHd.className = 'sales-panel-drag-handle';
+ sumHd.style.cssText='padding:12px 14px 5px;display:flex;align-items:center;gap:6px;position:relative;touch-action:none;';
  sumHd.innerHTML=
+ '<span style="width:34px;height:4px;border-radius:999px;background:#d1d5db;position:absolute;left:50%;top:6px;transform:translateX(-50%);"></span>'+
  '<span style="font-size:13px;"></span>'+
  '<div>'+
  '<div style="font-size:12px;font-weight:900;color:#111827;letter-spacing:-.3px;">공간 효율 분석</div>'+
