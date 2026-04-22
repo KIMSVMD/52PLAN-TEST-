@@ -1052,7 +1052,9 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
  }
 
  #canvasArea{
-  touch-action:none;
+  touch-action:pan-x pan-y;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
  }
 
  html, body {
