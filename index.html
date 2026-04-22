@@ -1080,20 +1080,47 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
     position: fixed !important;
     bottom: 0; left: 0; right: 0;
     width: 100% !important;
-    max-height: 60dvh !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
+    height: 65dvh !important;
+    max-height: 65dvh !important;
+    overflow: hidden !important;   /* 내부가 스크롤 담당 */
     border-left: none !important;
     border-top: 2px solid #005233 !important;
     border-radius: 14px 14px 0 0;
     box-shadow: 0 -4px 24px rgba(0,0,0,.2);
-    z-index: 600;
+    z-index: 700;
     transform: translateY(100%);
     transition: transform .28s cubic-bezier(.4,0,.2,1);
     flex-shrink: 0 !important;
+    pointer-events: auto !important;
+    touch-action: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff;
   }
   #salesWrap [data-sales-panel].mobile-panel-open {
     transform: translateY(0) !important;
+  }
+  /* 패널 내부: outerFlex → analysisCol → tabContents 스크롤 */
+  #salesWrap [data-sales-panel] > div {   /* outerFlex */
+    flex: 1 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+    display: flex !important;
+  }
+  #salesWrap [data-sales-panel] > div > div:first-child { /* analysisCol */
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+    min-height: 0 !important;
+  }
+  /* tabContents: 탭 내용 스크롤 영역 */
+  #salesWrap [data-sales-panel] > div > div:first-child > div:last-child {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    min-height: 0 !important;
   }
   /* 도면 바디 row → 정상 flex(도면이 꽉 참) */
   #salesWrap > div > div[style*="display:flex;overflow:hidden"] {
@@ -1200,16 +1227,20 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
     position: fixed !important;
     bottom: 0; left: 0; right: 0;
     width: 100% !important;
-    max-height: 55dvh;
-    overflow-y: auto;
+    height: 55dvh !important;
+    max-height: 55dvh !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain;
     border-left: none !important;
     border-top: 2px solid var(--border);
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -4px 24px rgba(0,0,0,.15);
-    z-index: 500;
+    z-index: 700;
     transform: translateY(100%);
     transition: transform .28s cubic-bezier(.4,0,.2,1);
-    -webkit-overflow-scrolling: touch;
+    pointer-events: auto !important;
+    touch-action: pan-y !important;
   }
   .rpanel.mobile-open {
     transform: translateY(0) !important;
@@ -1360,6 +1391,65 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
 
   .draw-toolbar { gap: 4px; }
   .draw-btn { padding: 3px 7px; font-size: 9px; }
+
+}
+
+/* ══════════════════════════════════════════
+   📱 핵심배치 바 & 운영탭 모바일
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* ── 핵심배치 바(#seasonSummary): 기본 숨김 → JS 토글 ── */
+  #seasonSummary {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+  }
+  #seasonSummary::-webkit-scrollbar { display: none; }
+  /* JS 토글로 숨김 처리는 inline style 사용 */
+
+  /* ── 운영탭 전체 레이아웃: 세로 스택 ── */
+  #omapWrap {
+    flex-direction: column !important;
+  }
+  /* omapArea: 전체 너비, 가로 스크롤 */
+  #omapArea {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    flex: 1 !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* 운영맵 테이블 래퍼 최소 너비 유지 (내부 컨텐츠는 스크롤) */
+  #omapArea > div {
+    min-width: 660px !important;
+  }
+  /* 운영탭 우측 패널 → 하단 슬라이드업 (평당매출 패널과 동일) */
+  #omapRpanel {
+    position: fixed !important;
+    bottom: 0; left: 0; right: 0;
+    width: 100% !important;
+    height: 58dvh !important;
+    max-height: 58dvh !important;
+    border-left: none !important;
+    border-top: 2px solid var(--border) !important;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.15);
+    z-index: 700;
+    transform: translateY(100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain;
+    pointer-events: auto !important;
+    touch-action: pan-y !important;
+  }
+  #omapRpanel.mobile-panel-open {
+    transform: translateY(0) !important;
+  }
 
 }
 
@@ -16364,6 +16454,169 @@ function psuAutoFillDays() {
 </script>
 
 <script>
+/* ══════════════════════════════════════════
+   📱 핵심배치 바 토글 (도면탭, 모바일 한정)
+══════════════════════════════════════════ */
+(function() {
+  function isMobile() { return window.innerWidth <= 768; }
+
+  // renderSeasonSummary 완료 후 토글 버튼 주입
+  var _orig = window.renderSeasonSummary;
+  window.renderSeasonSummary = function() {
+    var r = _orig ? _orig.apply(this, arguments) : undefined;
+    if (isMobile()) setTimeout(patchSeasonBar, 30);
+    return r;
+  };
+
+  function patchSeasonBar() {
+    var bar = document.getElementById('seasonSummary');
+    if (!bar) return;
+
+    // 토글 버튼 이미 있으면 스킵
+    if (document.getElementById('mSeasonToggle')) return;
+
+    // 기본: 숨김 상태
+    if (!window._mSeasonVisible) {
+      bar.style.display = 'none';
+    }
+
+    // 네비 row1에 토글 버튼 삽입
+    var navRow1 = document.querySelector('.nav-row1');
+    if (!navRow1) return;
+
+    var toggleBtn = document.createElement('button');
+    toggleBtn.id = 'mSeasonToggle';
+    toggleBtn.style.cssText = [
+      'flex-shrink:0;margin-left:auto;',
+      'display:inline-flex;align-items:center;gap:3px;',
+      'padding:4px 9px;border:1px solid var(--gmid);border-radius:4px;',
+      'background:transparent;color:var(--gmid);',
+      'font-family:inherit;font-size:9px;font-weight:800;',
+      'cursor:pointer;white-space:nowrap;transition:all .12s;'
+    ].join('');
+    toggleBtn.innerHTML = '☰ 핵심배치';
+    toggleBtn.onclick = function() {
+      window._mSeasonVisible = !window._mSeasonVisible;
+      bar.style.display = window._mSeasonVisible ? 'flex' : 'none';
+      toggleBtn.style.background = window._mSeasonVisible ? 'var(--gmid)' : 'transparent';
+      toggleBtn.style.color = window._mSeasonVisible ? '#fff' : 'var(--gmid)';
+    };
+
+    // nav-arrows 전에 삽입
+    var arrows = navRow1.querySelector('.nav-arrows');
+    if (arrows) {
+      navRow1.insertBefore(toggleBtn, arrows);
+    } else {
+      navRow1.appendChild(toggleBtn);
+    }
+  }
+
+  // 초기 렌더 시에도 적용
+  document.addEventListener('DOMContentLoaded', function() {
+    if (isMobile()) setTimeout(patchSeasonBar, 500);
+  });
+  window.addEventListener('load', function() {
+    if (isMobile()) setTimeout(patchSeasonBar, 800);
+  });
+})();
+
+/* ══════════════════════════════════════════
+   📱 운영탭 우측 패널 슬라이드업 토글
+══════════════════════════════════════════ */
+(function() {
+  function isMobile() { return window.innerWidth <= 768; }
+
+  // renderOmap 완료 후 패치
+  var _origOmap = window.renderOmap;
+  window.renderOmap = function() {
+    var r = _origOmap ? _origOmap.apply(this, arguments) : undefined;
+    if (isMobile()) setTimeout(patchOmapMobile, 80);
+    return r;
+  };
+
+  function patchOmapMobile() {
+    var omapRpanel = document.getElementById('omapRpanel');
+    var omapWrap = document.getElementById('omapWrap');
+    if (!omapRpanel || !omapWrap) return;
+
+    // 기존 버튼 제거
+    var oldBtn = document.getElementById('mOmapPanelToggle');
+    if (oldBtn) oldBtn.remove();
+    var oldDim = document.getElementById('mOmapDim');
+    if (oldDim) oldDim.remove();
+
+    // 핸들 바 추가
+    var handle = omapRpanel.querySelector('#mOmapHandle');
+    if (!handle) {
+      handle = document.createElement('div');
+      handle.id = 'mOmapHandle';
+      handle.style.cssText = 'width:36px;height:4px;background:#d1d5db;border-radius:2px;margin:8px auto 4px;flex-shrink:0;cursor:pointer;';
+      omapRpanel.insertBefore(handle, omapRpanel.firstChild);
+    }
+    handle.onclick = function() { closeOmap(); };
+
+    // 딤 레이어
+    var dim = document.createElement('div');
+    dim.id = 'mOmapDim';
+    dim.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:620;display:none;pointer-events:auto;';
+    dim.onclick = function() { closeOmap(); };
+    document.body.appendChild(dim);
+
+    // 플로팅 버튼
+    var btn = document.createElement('button');
+    btn.id = 'mOmapPanelToggle';
+    btn.style.cssText = [
+      'position:fixed;bottom:16px;right:16px;',
+      'z-index:610;',
+      'background:#1e2a3a;color:#fff;',
+      'font-family:inherit;font-size:11px;font-weight:800;',
+      'width:48px;height:48px;border:none;border-radius:50%;',
+      'box-shadow:0 4px 14px rgba(0,0,0,.25);',
+      'cursor:pointer;display:flex;align-items:center;justify-content:center;',
+      'transition:opacity .2s;'
+    ].join('');
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>';
+    btn.title = '상세 패널';
+    btn.onclick = function() { openOmap(); };
+    document.body.appendChild(btn);
+
+    function openOmap() {
+      omapRpanel.classList.add('mobile-panel-open');
+      dim.style.display = 'block';
+      btn.style.opacity = '0';
+      btn.style.pointerEvents = 'none';
+    }
+    function closeOmap() {
+      omapRpanel.classList.remove('mobile-panel-open');
+      dim.style.display = 'none';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = '';
+    }
+
+    // 스와이프 다운으로 닫기
+    var startY = 0;
+    omapRpanel.addEventListener('touchstart', function(e) { startY = e.touches[0].clientY; }, { passive: true });
+    omapRpanel.addEventListener('touchend', function(e) {
+      if (e.changedTouches[0].clientY - startY > 50) closeOmap();
+    }, { passive: true });
+
+    // 탭 전환 시 버튼/딤 정리
+    document.querySelectorAll('.vtab').forEach(function(t) {
+      t.addEventListener('click', function() {
+        setTimeout(function() {
+          var ow = document.getElementById('omapWrap');
+          if (!ow || ow.style.display === 'none') {
+            var ob = document.getElementById('mOmapPanelToggle');
+            if (ob) ob.remove();
+            var od = document.getElementById('mOmapDim');
+            if (od) od.remove();
+          }
+        }, 100);
+      });
+    });
+  }
+})();
+
 /* ── 모바일 우측 패널 슬라이드 업 ── */
 (function() {
   function isMobile() { return window.innerWidth <= 768; }
@@ -16463,7 +16716,7 @@ function psuAutoFillDays() {
       dim.id = 'mSalesDim';
       dim.style.cssText = [
         'position:fixed;inset:0;background:rgba(0,0,0,.35);',
-        'z-index:595;display:none;'
+        'z-index:620;display:none;pointer-events:auto;'
       ].join('');
       dim.onclick = function() { closePanel(); };
       document.body.appendChild(dim);
