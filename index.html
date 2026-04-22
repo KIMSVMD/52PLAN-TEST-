@@ -1046,8 +1046,52 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
 ══════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* ── 기본 body ── */
-  body { height: auto; min-height: 100dvh; overflow-x: hidden; }
+  /* ── 기본 body: 100dvh 유지 (flex:1 자식들이 높이를 가져야 함) ── */
+  body {
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+  }
+
+  /* ── salesWrap / omapWrap: 세로 스크롤 가능하도록 ── */
+  #salesWrap {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  #omapWrap {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── planView (도면 탭): 캔버스 세로 스크롤 ── */
+  .main-wrap#planView {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── 평당매출 내부 레이아웃: 모바일에서 세로 스택 ── */
+  /* body(body의 자식) 영역이 flex:row → 세로로 전환 */
+  #salesWrap > div[style*="flex:1;display:flex;overflow:hidden"] {
+    flex-direction: column !important;
+  }
+  /* 도면 컬럼: 고정 높이로 위쪽에 배치 */
+  #salesMapCol {
+    flex: none !important;
+    width: 100% !important;
+    height: 55dvh !important;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* 분석표 컬럼(tblCol): JS inline width:420px 무력화, 아래로 배치 */
+  #salesWrap [data-sales-panel] {
+    width: 100% !important;
+    flex-shrink: 1 !important;
+    border-left: none !important;
+    border-top: 2px solid #e5e7eb !important;
+    max-height: 45dvh;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
 
   /* ── 헤더 ── */
   .hdr {
@@ -1121,8 +1165,23 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   .wk-btn-label { font-size: 9px; }
   .wk-btn-dates { font-size: 8px; }
 
-  /* 월별 매출 네비 */
-  #salesMonthNav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  /* 월별 매출 네비 — salesMonthNav 전체 행을 모바일에서 가로 스크롤 */
+  #salesMonthNav { display: block !important; }
+  #salesMonthNav > div {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 8px 0 10px;
+    min-height: 38px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  #salesMonthNav > div::-webkit-scrollbar { display: none; }
+  #salesMonthNav > div > span { flex-shrink: 0; font-size: 9px; margin-right: 6px; }
+  #salesNavMonths { flex-shrink: 0; flex: none !important; display: flex !important; gap: 0; }
+  #salesMonthNav button[onclick*="openCopyGroupsModal"] { flex-shrink: 0; font-size: 9px; padding: 2px 8px; margin-left: 6px; }
 
   /* ── 메인 콘텐츠 영역 ── */
   #mainWrap, .main-wrap, #appBody {
