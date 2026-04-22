@@ -1051,6 +1051,10 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   display:none !important;
  }
 
+ #canvasArea{
+  touch-action:none;
+ }
+
  html, body {
   min-height: 100dvh;
  }
@@ -4517,6 +4521,59 @@ function zoomStep(delta){
  applyScale();
 }
 
+function bindPlanTouchZoom() {
+ const area = document.getElementById('canvasArea');
+ if (!area || area.dataset.touchZoomBound === '1') return;
+ area.dataset.touchZoomBound = '1';
+ let pinch = null;
+
+ function dist(t1, t2) {
+  const dx = t1.clientX - t2.clientX;
+  const dy = t1.clientY - t2.clientY;
+  return Math.hypot(dx, dy);
+ }
+
+ function mid(t1, t2) {
+  return { x:(t1.clientX + t2.clientX)/2, y:(t1.clientY + t2.clientY)/2 };
+ }
+
+ area.addEventListener('touchstart', function(e) {
+  if (!window.matchMedia || !window.matchMedia('(max-width: 1024px)').matches) return;
+  if (!e.touches || e.touches.length !== 2) return;
+  const rect = area.getBoundingClientRect();
+  const m = mid(e.touches[0], e.touches[1]);
+  pinch = {
+   startDist: dist(e.touches[0], e.touches[1]),
+   startScale: curScale,
+   originX: area.scrollLeft + (m.x - rect.left),
+   originY: area.scrollTop + (m.y - rect.top)
+  };
+ }, { passive:true });
+
+ area.addEventListener('touchmove', function(e) {
+  if (!pinch || !e.touches || e.touches.length !== 2) return;
+  e.preventDefault();
+  userZoomed = true;
+  const nextDist = dist(e.touches[0], e.touches[1]);
+  const nextScale = Math.min(Math.max(pinch.startScale * (nextDist / Math.max(1, pinch.startDist)), 0.2), 2.0);
+  curScale = nextScale;
+  localStorage.setItem('planZoomScale', curScale);
+  applyScale();
+  const rect = area.getBoundingClientRect();
+  const m = mid(e.touches[0], e.touches[1]);
+  const ratio = nextScale / Math.max(0.01, pinch.startScale);
+  area.scrollLeft = Math.max(0, pinch.originX * ratio - (m.x - rect.left));
+  area.scrollTop = Math.max(0, pinch.originY * ratio - (m.y - rect.top));
+ }, { passive:false });
+
+ function clearPinch(e) {
+  if (!e.touches || e.touches.length < 2) pinch = null;
+ }
+
+ area.addEventListener('touchend', clearPinch, { passive:true });
+ area.addEventListener('touchcancel', clearPinch, { passive:true });
+}
+
 // ── 줌 컨트롤 위치: canvasArea 우상단에 고정 ──
 function positionZoomCtrl(){
  const area = document.getElementById('canvasArea');
@@ -4547,7 +4604,10 @@ document.addEventListener('DOMContentLoaded', function() {
  });
 });
 // 초기 배치 + planView 전환 시 재배치
-document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(positionZoomCtrl, 100); });
+document.addEventListener('DOMContentLoaded', ()=>{
+ setTimeout(positionZoomCtrl, 100);
+ bindPlanTouchZoom();
+});
 
 // 마우스 휠 줌
 // canvasArea 스크롤 시 비율 실시간 저장 (탭 전환 시 정확한 위치 복원용)
@@ -11089,29 +11149,54 @@ function setSalesMobilePanelOpen(forceOpen) {
 function bindSalesPanelSwipeClose() {
  const panel = document.querySelector('#salesWrap [data-sales-panel]');
  const handle = panel ? panel.querySelector('.sales-panel-drag-handle') : null;
+ const scrollBody = panel ? panel.querySelector('.sales-panel-scroll') : null;
  if (!panel || !handle || handle.dataset.swipeBound === '1') return;
  handle.dataset.swipeBound = '1';
+ if (scrollBody) scrollBody.dataset.swipeBound = '1';
  let startY = 0;
+ let startX = 0;
  let dragging = false;
  let deltaY = 0;
+ let source = null;
 
- handle.addEventListener('touchstart', function(e) {
+ function beginSwipe(e, kind) {
   if (!isSalesMobileViewport() || !window._salesMobilePanelOpen) return;
   if (!e.touches || e.touches.length !== 1) return;
+  if (kind === 'body' && scrollBody && scrollBody.scrollTop > 4) return;
   startY = e.touches[0].clientY;
+  startX = e.touches[0].clientX;
   deltaY = 0;
   dragging = true;
+  source = kind;
   panel.style.transition = 'none';
- }, { passive:true });
+ }
 
- handle.addEventListener('touchmove', function(e) {
+ function moveSwipe(e) {
   if (!dragging || !e.touches || e.touches.length !== 1) return;
-  deltaY = Math.max(0, e.touches[0].clientY - startY);
+  const moveY = e.touches[0].clientY - startY;
+  const moveX = e.touches[0].clientX - startX;
+  if (Math.abs(moveX) > Math.abs(moveY)) {
+   dragging = false;
+   panel.style.transition = '';
+   panel.style.transform = '';
+   deltaY = 0;
+   source = null;
+   return;
+  }
+  if (source === 'body' && scrollBody && scrollBody.scrollTop > 4) {
+   dragging = false;
+   panel.style.transition = '';
+   panel.style.transform = '';
+   deltaY = 0;
+   source = null;
+   return;
+  }
+  deltaY = Math.max(0, moveY);
   if (deltaY > 0) {
    e.preventDefault();
    panel.style.transform = 'translateY(' + deltaY + 'px)';
   }
- }, { passive:false });
+ }
 
  function finishSwipe() {
   if (!dragging) return;
@@ -11120,10 +11205,25 @@ function bindSalesPanelSwipeClose() {
   panel.style.transform = '';
   if (deltaY > 90) setSalesMobilePanelOpen(false);
   deltaY = 0;
+  source = null;
  }
 
+ handle.addEventListener('touchstart', function(e) {
+  beginSwipe(e, 'handle');
+ }, { passive:true });
+ handle.addEventListener('touchmove', moveSwipe, { passive:false });
  handle.addEventListener('touchend', finishSwipe, { passive:true });
  handle.addEventListener('touchcancel', finishSwipe, { passive:true });
+
+ if (scrollBody && scrollBody.dataset.swipeListenerBound !== '1') {
+  scrollBody.dataset.swipeListenerBound = '1';
+  scrollBody.addEventListener('touchstart', function(e) {
+   beginSwipe(e, 'body');
+  }, { passive:true });
+  scrollBody.addEventListener('touchmove', moveSwipe, { passive:false });
+  scrollBody.addEventListener('touchend', finishSwipe, { passive:true });
+  scrollBody.addEventListener('touchcancel', finishSwipe, { passive:true });
+ }
 }
 
 if (!window._salesMobilePanelResizeBound) {
