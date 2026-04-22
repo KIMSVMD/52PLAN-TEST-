@@ -1410,6 +1410,217 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   #seasonBarToggle { cursor: default !important; }
 }
 
+
+/* ════════════════════════════════════════════
+   📱 MOBILE STORE PICKER + VIEWER UI
+════════════════════════════════════════════ */
+
+/* 모바일 지점 선택 오버레이 */
+#mobStorePicker {
+  display: none;
+  position: fixed; inset: 0; z-index: 10000;
+  background: #111;
+  flex-direction: column;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+}
+#mobStorePicker.active { display: flex; }
+
+.msp-header {
+  padding: 56px 24px 20px;
+  background: linear-gradient(160deg, #111 60%, #1a2a1a);
+  flex-shrink: 0;
+}
+.msp-brand {
+  font-family: 'Syne', 'Pretendard', sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: 2px;
+  color: #4caf82; text-transform: uppercase; margin-bottom: 12px;
+}
+.msp-title {
+  font-size: 26px; font-weight: 900; color: #fff;
+  letter-spacing: -0.8px; line-height: 1.2; margin-bottom: 6px;
+}
+.msp-sub {
+  font-size: 12px; color: #666; font-weight: 400;
+}
+
+.msp-body {
+  flex: 1; overflow-y: auto; padding: 20px 16px 120px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.msp-section-label {
+  font-size: 9px; font-weight: 800; color: #444;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 0 4px; margin: 20px 0 10px;
+}
+.msp-section-label:first-child { margin-top: 0; }
+
+.msp-store-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 4px;
+}
+.msp-store-btn {
+  background: #1a1a1a; border: 1.5px solid #222;
+  border-radius: 14px; padding: 16px 14px;
+  cursor: pointer; text-align: left;
+  transition: all .15s; position: relative; overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.msp-store-btn:active { transform: scale(.97); }
+.msp-store-btn.featured {
+  background: linear-gradient(135deg, #003d26, #005233);
+  border-color: #4caf82;
+  grid-column: 1 / -1;
+}
+.msp-store-btn-icon {
+  font-size: 22px; margin-bottom: 8px; display: block;
+}
+.msp-store-btn-name {
+  font-size: 15px; font-weight: 800; color: #fff;
+  letter-spacing: -0.3px; display: block;
+}
+.msp-store-btn.featured .msp-store-btn-name { font-size: 17px; }
+.msp-store-btn-tag {
+  font-size: 9px; font-weight: 700; color: #4caf82;
+  letter-spacing: .4px; margin-top: 4px; display: block;
+}
+.msp-store-btn.featured .msp-store-btn-tag { color: #a7c9bc; }
+.msp-store-btn:not(.featured) .msp-store-btn-name { color: #ccc; }
+.msp-store-btn:not(.featured) .msp-store-btn-tag { color: #555; }
+
+/* 모바일 뷰어 헤더 (데스크탑 헤더 대체) */
+#mobViewerHeader {
+  display: none;
+  background: #111;
+  padding: 0 14px;
+  height: 52px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 400;
+  border-bottom: 1px solid #1e1e1e;
+}
+#mobViewerHeader.active { display: flex; }
+
+.mvh-left { display: flex; align-items: center; gap: 10px; }
+.mvh-logo {
+  font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800;
+  color: #4caf82; letter-spacing: .5px;
+}
+.mvh-store {
+  font-size: 13px; font-weight: 800; color: #fff;
+  letter-spacing: -0.3px;
+}
+.mvh-store-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border: 1px solid #333; border-radius: 8px;
+  background: #1a1a1a; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.mvh-store-btn svg { flex-shrink: 0; }
+.mvh-back {
+  width: 36px; height: 36px; border: none; border-radius: 9px;
+  background: #1a1a1a; color: #666; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 모바일 탭바 (도면/평당매출/운영맵) — 모바일 전용 스타일 */
+#mobViewerTabBar {
+  display: none;
+  background: #005233;
+  padding: 0;
+  height: 48px;
+  flex-shrink: 0;
+  z-index: 300;
+  align-items: stretch;
+}
+#mobViewerTabBar.active { display: flex; }
+.mvt-btn {
+  flex: 1; border: none; background: transparent;
+  color: rgba(255,255,255,.5); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; font-family: 'Pretendard', sans-serif;
+  font-size: 9px; font-weight: 700; letter-spacing: .2px;
+  border-bottom: 3px solid transparent; transition: all .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.mvt-btn.active { color: #fff; border-bottom-color: #fff; }
+.mvt-btn svg { flex-shrink: 0; }
+
+/* 모바일 도면 전체화면 캔버스 */
+@media (max-width: 767px) {
+  /* 데스크탑 헤더 모바일에서 숨김 */
+  body.mob-viewer-active .hdr { display: none !important; }
+  body.mob-viewer-active #viewTabBar { display: none !important; }
+  body.mob-viewer-active .nav { display: none !important; }
+  body.mob-viewer-active #salesMonthNav { display: none !important; }
+  body.mob-viewer-active #catFocusBar { display: none !important; }
+  body.mob-viewer-active .toolbar { display: none !important; }
+  body.mob-viewer-active #drawToolbar { display: none !important; }
+  body.mob-viewer-active #catRegionToolbar { display: none !important; }
+
+  /* 도면 캔버스 — 전체 화면 활용 */
+  body.mob-viewer-active #canvasArea {
+    height: calc(100dvh - 52px - 48px - 60px) !important;
+    min-height: 0 !important;
+  }
+  body.mob-viewer-active #planView {
+    flex-direction: column !important;
+    height: calc(100dvh - 52px - 48px - 60px) !important;
+    overflow: hidden !important;
+  }
+  body.mob-viewer-active .rpanel { display: none !important; }
+  body.mob-viewer-active .zoom-ctrl {
+    bottom: 70px !important; right: 12px !important; top: auto !important;
+  }
+
+  /* 평당매출 탭 모바일 */
+  body.mob-viewer-active #salesWrap {
+    height: calc(100dvh - 52px - 48px - 60px) !important;
+  }
+
+  /* 핵심배치 바 — 모바일 뷰어에서 상단 네비 대신 드로어 사용 */
+  body.mob-viewer-active #seasonSummary { display: none !important; }
+
+  /* 모바일 액션바 — nav 없이도 주차 이동 가능하게 */
+  #mobWeekNav {
+    display: flex;
+    position: fixed; bottom: 60px; left: 0; right: 0;
+    height: 44px; background: #fff; border-top: 1px solid #e5e7eb;
+    z-index: 450; align-items: center; justify-content: space-between;
+    padding: 0 12px; gap: 8px;
+    box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+  }
+  .mwn-btn {
+    width: 36px; height: 36px; border: 1.5px solid #e5e7eb;
+    border-radius: 8px; background: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #374151; font-size: 15px; flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mwn-btn:active { background: #f3f4f6; }
+  .mwn-center {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 1px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .mwn-badge {
+    font-family: 'DM Mono', monospace; font-size: 8px; font-weight: 700;
+    color: #9ca3af; letter-spacing: .3px;
+  }
+  .mwn-label {
+    font-size: 12px; font-weight: 800; color: #111827; letter-spacing: -.3px;
+  }
+  .mwn-dates { font-size: 9px; color: #9ca3af; }
+}
+
+@media (min-width: 768px) {
+  #mobStorePicker { display: none !important; }
+  #mobViewerHeader { display: none !important; }
+  #mobViewerTabBar { display: none !important; }
+  #mobWeekNav { display: none !important; }
+}
+
 </style>
 
 <!-- Firebase SDK -->
@@ -2276,6 +2487,149 @@ window.onerror = function(msg, src, line, col, err) {
  </div>
  <style>@keyframes fbloading{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>
 </div>
+
+<!-- ═══════════════════════════════════════════
+     📱 MOBILE STORE PICKER (모바일 전용)
+     — 데스크탑에서는 display:none
+═══════════════════════════════════════════ -->
+<div id="mobStorePicker">
+  <div class="msp-header">
+    <div class="msp-brand">KIM'S CLUB</div>
+    <div class="msp-title">52주<br>AI 표준화</div>
+    <div class="msp-sub">지점을 선택하면 도면·평당매출·운영맵을 확인할 수 있습니다</div>
+  </div>
+  <div class="msp-body">
+    <div class="msp-section-label">모델점</div>
+    <div class="msp-store-grid">
+      <button class="msp-store-btn featured" onclick="mobEnterStore('gs')">
+        <span class="msp-store-btn-icon">🏪</span>
+        <span class="msp-store-btn-name">강서점</span>
+        <span class="msp-store-btn-tag">MODEL STORE</span>
+      </button>
+    </div>
+
+    <div class="msp-section-label">대형점</div>
+    <div class="msp-store-grid">
+      <button class="msp-store-btn" onclick="mobEnterStore('gn')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">강남점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('yt')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">야탑점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('bg')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">불광점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('sp')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">송파점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('bc')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">부천점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('pc')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">평촌점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('bd')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">분당점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+      <button class="msp-store-btn" onclick="mobEnterStore('trfw')">
+        <span class="msp-store-btn-icon">🏬</span>
+        <span class="msp-store-btn-name">신구로점</span>
+        <span class="msp-store-btn-tag">LARGE</span>
+      </button>
+    </div>
+
+    <div class="msp-section-label">중형점</div>
+    <div class="msp-store-grid">
+      <button class="msp-store-btn" onclick="mobEnterStore('rdw')">
+        <span class="msp-store-btn-icon">🏪</span>
+        <span class="msp-store-btn-name">구의점</span>
+        <span class="msp-store-btn-tag">MEDIUM</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 📱 모바일 뷰어 헤더 ═══ -->
+<div id="mobViewerHeader">
+  <div class="mvh-left">
+    <div class="mvh-logo">KIM'S</div>
+    <button class="mvh-store-btn" onclick="mobShowStorePicker()" id="mobStoreName">
+      <span style="font-size:13px;font-weight:800;color:#fff;" id="mobStoreNameText">강서점</span>
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 5l3 3 3-3" stroke="#4caf82" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <!-- 핵심배치 버튼 -->
+    <button onclick="toggleMobileKeyLayout()" style="padding:6px 10px;border:1px solid #333;border-radius:8px;background:#1a1a1a;color:#4caf82;font-family:inherit;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:-.1px;-webkit-tap-highlight-color:transparent;">핵심배치</button>
+    <!-- 주차 정보 -->
+    <div style="text-align:right;">
+      <div id="mobHdrWeekBadge" style="font-family:'DM Mono',monospace;font-size:8px;color:#555;letter-spacing:.3px;"></div>
+      <div id="mobHdrWeekLabel" style="font-size:11px;font-weight:800;color:#ccc;letter-spacing:-.2px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 📱 모바일 탭바 ═══ -->
+<div id="mobViewerTabBar">
+  <button class="mvt-btn active" id="mobTabPlan" onclick="mobSwitchView('plan')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.6"/></svg>
+    도면
+  </button>
+  <button class="mvt-btn" id="mobTabSales" onclick="mobSwitchView('sales')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 15V9h3v6M6 15V5h3v10M11 15V1h3v14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    평당매출
+  </button>
+  <button class="mvt-btn" id="mobTabOmap" onclick="mobSwitchView('omap')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="2.5" rx="1" fill="currentColor"/><rect x="1" y="6" width="9" height="2" rx="1" fill="currentColor"/><rect x="1" y="10" width="11" height="2" rx="1" fill="currentColor"/><rect x="1" y="14" width="7" height="2" rx="1" fill="currentColor"/></svg>
+    운영맵
+  </button>
+</div>
+
+<!-- ═══ 📱 모바일 주차 네비 (도면 위 고정) ═══ -->
+<div id="mobWeekNav" style="display:none;">
+  <button class="mwn-btn" id="mobWkPrev" onclick="mobWeekMove(-1)">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <div class="mwn-center" onclick="mobOpenWeekPicker()">
+    <div class="mwn-badge" id="mobWkBadge">W01</div>
+    <div class="mwn-label" id="mobWkLabel">4월 1주</div>
+    <div class="mwn-dates" id="mobWkDates"></div>
+  </div>
+  <!-- 카테고리 필터 -->
+  <div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;justify-content:flex-end;" id="mobCatBtns">
+    <button class="mwn-btn" id="mobCatAll" onclick="mobCatFilter('all')" style="width:auto;padding:0 9px;font-family:inherit;font-size:10px;font-weight:700;color:#005233;border-color:#a7c9bc;background:#e6f2ed;">전체</button>
+  </div>
+  <button class="mwn-btn" id="mobWkNext" onclick="mobWeekMove(1)">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<!-- ═══ 📱 모바일 주차 선택 드로어 ═══ -->
+<div id="mobWeekPickerDrawer" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:600;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.18);transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);max-height:70vh;overflow:hidden;flex-direction:column;">
+  <div style="padding:10px 0 6px;display:flex;justify-content:center;flex-shrink:0;">
+    <div style="width:36px;height:4px;border-radius:2px;background:#d1d5db;"></div>
+  </div>
+  <div style="padding:6px 18px 12px;font-size:14px;font-weight:900;color:#111827;flex-shrink:0;">주차 선택</div>
+  <!-- 월 탭 -->
+  <div id="mobWkPickerMonths" style="display:flex;overflow-x:auto;scrollbar-width:none;padding:0 14px 10px;gap:6px;flex-shrink:0;"></div>
+  <!-- 주차 그리드 -->
+  <div id="mobWkPickerWeeks" style="flex:1;overflow-y:auto;padding:0 14px 24px;display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+</div>
+<div id="mobWeekPickerBg" onclick="mobCloseWeekPicker()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:599;"></div>
 
 <div id="lockOverlay" style="position:fixed;inset:0;background:rgba(240,237,230,.92);backdrop-filter:blur(16px);z-index:9999;display:flex;align-items:center;justify-content:center">
  <div style="background:#ffffff;border:1px solid #e5e5e5;border-radius:20px;padding:40px 36px;width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.08)">
@@ -7101,6 +7455,314 @@ function backToHome(){
  });
  lockTab('view');
 }
+
+/* ═══════════════════════════════════════════════════
+   📱 MOBILE VIEWER — 지점 선택 + 뷰어 진입 시스템
+═══════════════════════════════════════════════════ */
+(function() {
+  const isMobile = () => window.innerWidth <= 767;
+
+  // ── 앱 시작 시: 모바일이면 지점 선택 화면 먼저 ──
+  function initMobileUI() {
+    if (!isMobile()) return;
+    // lockOverlay 숨김
+    const lo = document.getElementById('lockOverlay');
+    if (lo) lo.style.display = 'none';
+    // 모바일 지점 선택 화면 표시
+    const picker = document.getElementById('mobStorePicker');
+    if (picker) picker.classList.add('active');
+  }
+
+  // DOMContentLoaded 후 실행 (Firebase 로드 기다리지 않고 UI만 먼저)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { setTimeout(initMobileUI, 100); });
+  } else {
+    setTimeout(initMobileUI, 100);
+  }
+
+  // ── 지점 선택 후 뷰어 진입 ──
+  window.mobEnterStore = function(storeCode) {
+    if (!isMobile()) return;
+    // 지점 피커 숨기기
+    const picker = document.getElementById('mobStorePicker');
+    if (picker) picker.classList.remove('active');
+
+    // 열람자 모드로 진입 (공개 월 체크 우회 — 모바일은 항상 열람 가능)
+    isViewer = true; isAdmin = false;
+    document.body.classList.add('viewer-mode', 'mob-viewer-active');
+    ['salBtnDataInput','salBtnExcel','salGroupEditBtn','salBtnResetLabel'].forEach(function(id){
+      var el = document.getElementById(id); if (el) el.style.display = 'none';
+    });
+
+    // 데스크탑 lockOverlay 유지 숨김
+    var lo = document.getElementById('lockOverlay');
+    if (lo) lo.style.display = 'none';
+
+    // 데스크탑 헤더 hdrR 숨김
+    var hdrR = document.getElementById('hdrR');
+    if (hdrR) { hdrR.style.visibility = 'hidden'; hdrR.style.opacity = '0'; }
+
+    // 편집 모드 해제
+    if (typeof editMode !== 'undefined' && editMode) {
+      editMode = false;
+    }
+
+    // 지점 전환
+    if (typeof switchStore === 'function' && typeof currentStore !== 'undefined' && currentStore !== storeCode) {
+      switchStore(storeCode);
+    } else if (typeof currentStore !== 'undefined') {
+      currentStore = storeCode;
+    }
+
+    // 모바일 헤더/탭바 표시
+    var mhdr = document.getElementById('mobViewerHeader');
+    var mtab = document.getElementById('mobViewerTabBar');
+    if (mhdr) mhdr.classList.add('active');
+    if (mtab) mtab.classList.add('active');
+
+    // 지점명 업데이트
+    mobUpdateStoreName();
+
+    // 오늘 주차로 이동 (공개 월 여부 무관)
+    var todayIdx = (typeof getTodayWkIdx === 'function') ? getTodayWkIdx() : 0;
+    if (typeof curWkIdx !== 'undefined') curWkIdx = todayIdx;
+    if (typeof curMonthIdx !== 'undefined' && typeof WEEKS !== 'undefined') {
+      curMonthIdx = WEEKS[todayIdx] ? WEEKS[todayIdx].mo : 0;
+    }
+
+    // 열람자 설정
+    if (typeof salesGroupEditMode !== 'undefined') salesGroupEditMode = false;
+    var _sgp = document.getElementById('salesGroupPanel');
+    if (_sgp) _sgp.style.display = 'none';
+
+    // 렌더
+    setTimeout(function() {
+      if (typeof render === 'function') render();
+      if (typeof applyScale === 'function') applyScale();
+      if (typeof renderNav === 'function') renderNav();
+      if (typeof renderWkSummary === 'function') renderWkSummary();
+      // 툴바 숨김
+      var tb = document.getElementById('toolbar');
+      if (tb) tb.style.display = 'none';
+      var dt = document.getElementById('drawToolbar');
+      if (dt) dt.classList.add('hidden');
+      // 도면 탭 기본 선택
+      mobSwitchView('plan');
+      // 주차 네비 표시
+      mobShowWeekNav();
+    }, 200);
+  };
+
+  // ── 지점 선택 화면으로 돌아가기 ──
+  window.mobShowStorePicker = function() {
+    var picker = document.getElementById('mobStorePicker');
+    var mhdr = document.getElementById('mobViewerHeader');
+    var mtab = document.getElementById('mobViewerTabBar');
+    var wn = document.getElementById('mobWeekNav');
+    if (picker) picker.classList.add('active');
+    if (mhdr) mhdr.classList.remove('active');
+    if (mtab) mtab.classList.remove('active');
+    if (wn) wn.style.display = 'none';
+    document.body.classList.remove('mob-viewer-active');
+    // 핵심배치 드로어 닫기
+    closeMobileKeyLayout();
+  };
+
+  // ── 지점명 업데이트 ──
+  function mobUpdateStoreName() {
+    var el = document.getElementById('mobStoreNameText');
+    if (!el) return;
+    var name = '';
+    if (typeof storeNames !== 'undefined' && typeof currentStore !== 'undefined') {
+      name = storeNames[currentStore] || currentStore;
+    } else if (typeof storeMap !== 'undefined' && typeof currentStore !== 'undefined') {
+      name = (storeMap[currentStore] && storeMap[currentStore].name) || currentStore;
+    }
+    el.textContent = name || '지점';
+    // storeMap 버튼명도 반영
+    var storePickerBtns = document.querySelectorAll('.msp-store-btn');
+    storePickerBtns.forEach(function(btn) {
+      // 지점명 동기화 (Firebase에서 받은 이름으로)
+    });
+  }
+  window.mobUpdateStoreName = mobUpdateStoreName;
+
+  // ── 탭 전환 ──
+  window.mobSwitchView = function(view) {
+    // 모바일 탭 버튼 활성화
+    ['plan','sales','omap'].forEach(function(v) {
+      var btn = document.getElementById('mobTab' + v.charAt(0).toUpperCase() + v.slice(1));
+      if (btn) btn.classList.toggle('active', v === view);
+    });
+    // 실제 뷰 전환 (기존 함수 활용)
+    if (typeof switchView === 'function') switchView(view);
+    // 주차 네비: 도면 탭에서만 표시
+    mobShowWeekNav();
+    // 탭별 액션바 조정
+    var actionBar = document.getElementById('mobileActionBar');
+    if (actionBar) actionBar.style.display = (view === 'plan') ? 'flex' : 'none';
+  };
+
+  // ── 주차 네비 표시/갱신 ──
+  window.mobShowWeekNav = function() {
+    var wn = document.getElementById('mobWeekNav');
+    if (!wn || !isMobile()) return;
+    wn.style.display = 'flex';
+    mobUpdateWeekNav();
+    mobBuildCatBtns();
+  };
+
+  window.mobUpdateWeekNav = function() {
+    var wk = (typeof getCurWk === 'function') ? getCurWk() : null;
+    if (!wk) return;
+    var badge = document.getElementById('mobWkBadge');
+    var label = document.getElementById('mobWkLabel');
+    var dates = document.getElementById('mobWkDates');
+    var hBadge = document.getElementById('mobHdrWeekBadge');
+    var hLabel = document.getElementById('mobHdrWeekLabel');
+    if (badge) badge.textContent = wk.id || '';
+    if (label) label.textContent = wk.label || '';
+    if (dates) dates.textContent = wk.dates || '';
+    if (hBadge) hBadge.textContent = wk.id || '';
+    if (hLabel) hLabel.textContent = wk.label || '';
+    // 이전/다음 버튼 disabled
+    var prev = document.getElementById('mobWkPrev');
+    var next = document.getElementById('mobWkNext');
+    if (prev && typeof curWkIdx !== 'undefined') prev.style.opacity = curWkIdx <= 0 ? '.3' : '1';
+    if (next && typeof curWkIdx !== 'undefined' && typeof WEEKS !== 'undefined') {
+      next.style.opacity = curWkIdx >= WEEKS.length - 1 ? '.3' : '1';
+    }
+  };
+
+  // ── 주차 이동 ──
+  window.mobWeekMove = function(dir) {
+    if (typeof curWkIdx === 'undefined' || typeof WEEKS === 'undefined') return;
+    var next = curWkIdx + dir;
+    if (next < 0 || next >= WEEKS.length) return;
+    curWkIdx = next;
+    if (typeof WEEKS !== 'undefined') curMonthIdx = WEEKS[next].mo;
+    if (typeof render === 'function') render();
+    if (typeof applyScale === 'function') applyScale();
+    if (typeof renderWkSummary === 'function') renderWkSummary();
+    mobUpdateWeekNav();
+    // 핵심배치 드로어가 열려있으면 내용 갱신
+    var kd = document.getElementById('mobileKeyLayoutDrawer');
+    if (kd && kd._isOpen) fillMobileKeyLayout();
+  };
+
+  // ── 카테고리 필터 버튼 생성 ──
+  function mobBuildCatBtns() {
+    var wrap = document.getElementById('mobCatBtns');
+    if (!wrap) return;
+    // catRegions에서 카테고리 추출
+    var cats = [];
+    if (typeof catRegions !== 'undefined') {
+      Object.values(catRegions).forEach(function(r) {
+        if (r && r.cat && !cats.includes(r.cat)) cats.push(r.cat);
+      });
+    }
+    // 기존 버튼 유지 (전체 버튼만 남기고 동적 추가)
+    var existing = wrap.querySelectorAll('.mob-cat-dyn');
+    existing.forEach(function(el) { el.remove(); });
+    cats.slice(0, 4).forEach(function(cat) {
+      var btn = document.createElement('button');
+      btn.className = 'mwn-btn mob-cat-dyn';
+      btn.style.cssText = 'width:auto;padding:0 8px;font-family:inherit;font-size:10px;font-weight:700;color:#374151;flex-shrink:0;';
+      btn.textContent = cat;
+      btn.onclick = function() { mobCatFilter(cat); };
+      wrap.insertBefore(btn, document.getElementById('mobWkNext'));
+    });
+  }
+  window.mobCatFilter = function(cat) {
+    // 전체/카테고리 필터 (기존 catFocusSelect 활용)
+    if (typeof catFocusSelect === 'function') catFocusSelect(cat);
+    // 버튼 활성화
+    document.querySelectorAll('#mobCatBtns .mwn-btn').forEach(function(btn) {
+      var isAll = cat === 'all';
+      var isThis = btn.textContent === cat || (isAll && btn.id === 'mobCatAll');
+      btn.style.color = isThis ? '#005233' : '#374151';
+      btn.style.borderColor = isThis ? '#a7c9bc' : '#e5e7eb';
+      btn.style.background = isThis ? '#e6f2ed' : '#fff';
+    });
+  };
+
+  // ── 주차 선택 드로어 ──
+  window.mobOpenWeekPicker = function() {
+    var drawer = document.getElementById('mobWeekPickerDrawer');
+    var bg = document.getElementById('mobWeekPickerBg');
+    if (!drawer || !bg) return;
+    // 월 탭 생성
+    mobBuildWeekPickerMonths();
+    // 현재 월 주차 표시
+    var mo = (typeof curMonthIdx !== 'undefined') ? curMonthIdx : 0;
+    mobBuildWeekPickerWeeks(mo);
+    bg.style.display = 'block';
+    drawer.style.display = 'flex';
+    requestAnimationFrame(function() { drawer.style.transform = 'translateY(0)'; });
+  };
+  window.mobCloseWeekPicker = function() {
+    var drawer = document.getElementById('mobWeekPickerDrawer');
+    var bg = document.getElementById('mobWeekPickerBg');
+    if (drawer) { drawer.style.transform = 'translateY(100%)'; setTimeout(function(){ drawer.style.display='none'; }, 300); }
+    if (bg) bg.style.display = 'none';
+  };
+  function mobBuildWeekPickerMonths() {
+    var wrap = document.getElementById('mobWkPickerMonths');
+    if (!wrap || typeof WEEKS === 'undefined') return;
+    wrap.innerHTML = '';
+    var months = [];
+    WEEKS.forEach(function(wk) { if (!months.includes(wk.mo)) months.push(wk.mo); });
+    var MO_NAMES = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    months.forEach(function(mo) {
+      var btn = document.createElement('button');
+      var isActive = mo === (typeof curMonthIdx !== 'undefined' ? curMonthIdx : 0);
+      btn.style.cssText = 'padding:6px 14px;border-radius:20px;border:1.5px solid '+(isActive?'#005233':'#e5e7eb')+';background:'+(isActive?'#005233':'#fff')+';color:'+(isActive?'#fff':'#374151')+';font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;';
+      btn.textContent = MO_NAMES[mo] || (mo+1)+'월';
+      btn.onclick = function() { mobBuildWeekPickerWeeks(mo); mobBuildWeekPickerMonths(); };
+      wrap.appendChild(btn);
+    });
+  }
+  function mobBuildWeekPickerWeeks(mo) {
+    var wrap = document.getElementById('mobWkPickerWeeks');
+    if (!wrap || typeof WEEKS === 'undefined') return;
+    wrap.innerHTML = '';
+    var pub = (typeof getPublicMonths === 'function') ? getPublicMonths() : [];
+    WEEKS.forEach(function(wk, idx) {
+      if (wk.mo !== mo) return;
+      var isActive = idx === (typeof curWkIdx !== 'undefined' ? curWkIdx : 0);
+      var btn = document.createElement('button');
+      btn.style.cssText = 'padding:12px 10px;border-radius:12px;border:1.5px solid '+(isActive?'#005233':'#e5e7eb')+';background:'+(isActive?'#e6f2ed':'#fff')+';cursor:pointer;text-align:left;font-family:inherit;-webkit-tap-highlight-color:transparent;';
+      btn.innerHTML =
+        '<div style="font-family:DM Mono,monospace;font-size:8px;color:#9ca3af;margin-bottom:3px;">'+(wk.id||'')+'</div>'+
+        '<div style="font-size:13px;font-weight:800;color:'+(isActive?'#005233':'#111827')+';letter-spacing:-.3px;">'+(wk.label||'')+'</div>'+
+        (wk.dates?'<div style="font-size:9px;color:#9ca3af;margin-top:2px;">'+wk.dates+'</div>':'');
+      btn.onclick = function() {
+        if (typeof curWkIdx !== 'undefined') curWkIdx = idx;
+        if (typeof curMonthIdx !== 'undefined') curMonthIdx = mo;
+        if (typeof render === 'function') render();
+        if (typeof applyScale === 'function') applyScale();
+        if (typeof renderWkSummary === 'function') renderWkSummary();
+        mobUpdateWeekNav();
+        mobCloseWeekPicker();
+        var kd = document.getElementById('mobileKeyLayoutDrawer');
+        if (kd && kd._isOpen) fillMobileKeyLayout();
+      };
+      wrap.appendChild(btn);
+    });
+  }
+
+  // ── 화면 크기 변경 시 처리 ──
+  window.addEventListener('resize', function() {
+    if (!isMobile()) {
+      // 데스크탑으로 전환 시 모바일 UI 모두 숨김
+      var picker = document.getElementById('mobStorePicker');
+      if (picker) picker.classList.remove('active');
+      document.body.classList.remove('mob-viewer-active');
+    }
+  });
+
+})();
+
 
 function viewerGuard(mo){
  if(!isViewer) return true;
