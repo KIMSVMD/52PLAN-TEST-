@@ -1453,6 +1453,301 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
 
 }
 
+@media (max-width: 640px) {
+  :root {
+    --cell: 82px;
+    --row: 56px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .hdr {
+    height: auto;
+    min-height: 52px;
+    padding: 8px 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hdr-brand,
+  .hdr-r {
+    width: 100%;
+  }
+
+  .hdr-brand {
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .hdr-logo {
+    min-width: 0;
+    gap: 6px;
+  }
+
+  .hdr h1 {
+    font-size: 12px;
+    line-height: 1.25;
+    white-space: normal;
+  }
+
+  .hdr-sub {
+    display: none;
+  }
+
+  .hdr-r {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .hdr-r::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hdr-group {
+    flex-shrink: 0;
+  }
+
+  #viewTabBar {
+    padding: 0 8px;
+  }
+
+  .vtab {
+    min-height: 38px;
+    padding: 9px 11px;
+    font-size: 11px;
+  }
+
+  #syncStatus {
+    margin-left: 6px;
+  }
+
+  .nav-top,
+  .nav-row1,
+  .nav-row2,
+  .nav-weeks {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .nav-top,
+  .nav-row1 {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 6px;
+  }
+
+  .nav-title {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .nav-dates,
+  .nav-theme {
+    line-height: 1.4;
+  }
+
+  .nav-info-right {
+    width: 100%;
+    margin: 0;
+    padding: 6px 0 0;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    justify-content: space-between;
+  }
+
+  .nav-arrows {
+    margin-left: auto;
+  }
+
+  .nav-arr,
+  .nav-today,
+  .nav-ai-btn {
+    min-height: 32px;
+  }
+
+  .nav-weeks {
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .nav-weeks::-webkit-scrollbar {
+    display: none;
+  }
+
+  .wk-btn {
+    width: 78px;
+    min-width: 78px;
+    height: 52px;
+    scroll-snap-align: start;
+  }
+
+  .main-wrap#planView {
+    overflow: hidden !important;
+  }
+
+  .canvas-area {
+    padding: 10px 10px 84px;
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .gc-scaler {
+    transform-origin: top left;
+  }
+
+  .rpanel {
+    height: min(68dvh, 640px) !important;
+    max-height: min(68dvh, 640px) !important;
+    border-radius: 18px 18px 0 0;
+  }
+
+  #wkSummaryWrap {
+    width: 100% !important;
+    min-height: 132px;
+    max-height: 30dvh;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+
+  #summaryResizeHandle {
+    display: none !important;
+  }
+
+  #detailPanel {
+    padding: 10px;
+  }
+
+  .wk-inp-row,
+  .scm-inp-row,
+  .mbtns,
+  .scm-footer {
+    flex-direction: column;
+  }
+
+  .sz-grid,
+  .color-grid,
+  .cpicker-presets {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .draw-toolbar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding: 6px 10px;
+  }
+
+  .draw-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .draw-btn,
+  .tbb,
+  .btn,
+  .hdr-tool-btn,
+  .hdr-save-btn,
+  .hdr-exit-btn {
+    min-height: 34px;
+  }
+
+  .ai-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ai-inp-row {
+    width: 100%;
+    margin: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ai-go,
+  .ai-inp {
+    width: 100%;
+  }
+
+  .ai-card {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .toast {
+    max-width: calc(100vw - 24px);
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --cell: 74px;
+    --row: 52px;
+  }
+
+  .hdr {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .hdr h1 {
+    font-size: 11px;
+  }
+
+  .vtab,
+  .mo-tab {
+    font-size: 10px;
+  }
+
+  .nav-title {
+    font-size: 11px;
+  }
+
+  .nav-dates,
+  .nav-theme,
+  .nav-event,
+  .wk-btn-sub {
+    font-size: 8px;
+  }
+
+  .wk-btn {
+    width: 72px;
+    min-width: 72px;
+    height: 50px;
+  }
+
+  .canvas-area {
+    padding: 8px 8px 88px;
+  }
+
+  .rpanel {
+    height: 72dvh !important;
+    max-height: 72dvh !important;
+  }
+
+  .zoom-ctrl {
+    bottom: 10px !important;
+    right: 10px !important;
+  }
+
+  .modal,
+  .scm-box,
+  .lvm-box {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+}
+
 </style>
 
 <!-- Firebase SDK -->
