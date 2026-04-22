@@ -46,6 +46,24 @@ body{background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD G
 }
 .hdr-brand{display:flex;align-items:center;gap:12px;}
 .hdr-logo{display:flex;align-items:center;gap:7px;}
+body.viewer-mode .hdr-logo::after{
+ content:'열람 모드';
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ height:20px;
+ padding:0 8px;
+ margin-left:2px;
+ border-radius:999px;
+ border:1px solid #2f6f54;
+ background:rgba(76,175,130,.14);
+ color:#92d5b3;
+ font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;
+ font-size:10px;
+ font-weight:800;
+ letter-spacing:-.1px;
+ white-space:nowrap;
+}
 
 .hdr h1{
  font-family:'Syne','Pretendard',sans-serif;
@@ -1082,6 +1100,11 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   min-width:0;
   gap:10px;
  }
+ body.viewer-mode .hdr-logo::after{
+  height:22px;
+  padding:0 9px;
+  font-size:10px;
+ }
  .hdr h1{
   font-size:14px;
   line-height:1.15;
@@ -1380,6 +1403,9 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
 }
 
 @media (max-width: 560px) {
+ #omapArea{
+  --omap-min-width:980px;
+ }
  #navBadge{
   display:none !important;
  }
@@ -1430,19 +1456,19 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
  #salesWrap .sales-mobile-toolbar #smPanelToggleInline{
   display:inline-flex !important;
   margin-left:auto;
-  min-height:34px;
-  padding:0 15px;
-  border-radius:999px;
-  border:1px solid #b7d4c3;
-  background:linear-gradient(180deg, #ffffff 0%, #f3fbf6 100%);
-  color:#14532d;
+  min-height:30px;
+  padding:0 12px;
+  border-radius:8px;
+  border:1px solid #9bc5aa;
+  background:#f7fbf8;
+  color:#116149;
   font-family:'Pretendard','Apple SD Gothic Neo',sans-serif;
-  font-size:12px;
-  font-weight:900;
-  letter-spacing:-.22px;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:-.12px;
   align-items:center;
   justify-content:center;
-  box-shadow:0 1px 2px rgba(15,23,42,.06);
+  box-shadow:none;
  }
  #salesWrap .sales-mobile-legend{
   display:none !important;
@@ -1461,33 +1487,39 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   display:none !important;
  }
  #omapArea{
+  --omap-min-width:1120px;
   width:100%;
   flex:1 1 auto;
   min-height:58dvh;
-  overflow-x:hidden !important;
+  overflow-x:auto !important;
   overflow-y:auto !important;
   -webkit-overflow-scrolling:touch;
   scrollbar-gutter:stable both-edges;
  }
+ #omapArea > *{
+  width:max-content !important;
+  min-width:var(--omap-min-width) !important;
+ }
  #omapArea table{
-  width:100% !important;
-  min-width:0 !important;
-  table-layout:fixed !important;
+  width:max-content !important;
+  min-width:var(--omap-min-width) !important;
+  table-layout:auto !important;
  }
  #omapArea th{
-  padding:4px 3px !important;
-  font-size:8px !important;
-  white-space:normal !important;
-  word-break:keep-all;
+  padding:5px 6px !important;
+  font-size:8.5px !important;
+  white-space:nowrap !important;
  }
  #omapArea td{
-  padding:4px 3px !important;
-  font-size:8px !important;
-  line-height:1.18 !important;
-  word-break:keep-all;
-  overflow-wrap:anywhere;
+  padding:5px 6px !important;
+  font-size:8.6px !important;
+  line-height:1.22 !important;
+  white-space:nowrap !important;
  }
  #omapRpanel{
+  display:none !important;
+ }
+ #omapDetailArea{
   display:none !important;
  }
  .canvas-area{
@@ -7047,7 +7079,6 @@ function enterViewer(){
  if (_sgp) _sgp.style.display = 'none';
  removeSalesGroupClickListeners();
  renderNav(); render(); applyScale(); renderWkSummary();
- showToast('열람 모드');
 }
 
 function backToHome(){
@@ -8322,7 +8353,7 @@ document.addEventListener('keydown',e=>{
 });
 
 // ═══════════ TOAST ═══════════
-function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
 // ═══════════ AI ═══════════
 let aiHistArr=[];
@@ -11154,19 +11185,20 @@ function setSalesMobilePanelOpen(forceOpen) {
 }
 
 function bindSalesPanelSwipeClose() {
- const panel = document.querySelector('#salesWrap [data-sales-panel]');
- const scrollBody = panel ? panel.querySelector('.sales-panel-scroll') : null;
- if (!panel || panel.dataset.swipeBound === '1') return;
- panel.dataset.swipeBound = '1';
+ if (window._salesPanelSwipeDocBound) return;
  let startY = 0;
  let startX = 0;
  let dragging = false;
  let deltaY = 0;
+ let panel = null;
  let sourceEl = null;
 
  function beginSwipe(e) {
+  panel = document.querySelector('#salesWrap [data-sales-panel]');
+  if (!panel) return;
   if (!isSalesMobileViewport() || !window._salesMobilePanelOpen) return;
   if (!e.touches || e.touches.length !== 1) return;
+  if (!panel.contains(e.target)) return;
   const targetScroll = e.target && e.target.closest ? e.target.closest('.sales-panel-scroll') : null;
   if (targetScroll && targetScroll.scrollTop > 4) return;
   startY = e.touches[0].clientY;
@@ -11178,6 +11210,7 @@ function bindSalesPanelSwipeClose() {
  }
 
  function moveSwipe(e) {
+  if (!panel) return;
   if (!dragging || !e.touches || e.touches.length !== 1) return;
   const moveY = e.touches[0].clientY - startY;
   const moveX = e.touches[0].clientX - startX;
@@ -11205,6 +11238,7 @@ function bindSalesPanelSwipeClose() {
  }
 
  function finishSwipe() {
+  if (!panel) return;
   if (!dragging) return;
   dragging = false;
   panel.style.transition = '';
@@ -11214,10 +11248,11 @@ function bindSalesPanelSwipeClose() {
   sourceEl = null;
  }
 
- panel.addEventListener('touchstart', beginSwipe, { passive:true });
- panel.addEventListener('touchmove', moveSwipe, { passive:false });
- panel.addEventListener('touchend', finishSwipe, { passive:true });
- panel.addEventListener('touchcancel', finishSwipe, { passive:true });
+ document.addEventListener('touchstart', beginSwipe, { passive:true, capture:true });
+ document.addEventListener('touchmove', moveSwipe, { passive:false, capture:true });
+ document.addEventListener('touchend', finishSwipe, { passive:true, capture:true });
+ document.addEventListener('touchcancel', finishSwipe, { passive:true, capture:true });
+ window._salesPanelSwipeDocBound = true;
 }
 
 if (!window._salesMobilePanelResizeBound) {
