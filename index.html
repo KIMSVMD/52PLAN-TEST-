@@ -1464,25 +1464,28 @@ body.viewer-mode .zb.cat-zone-border { border-width: 1px !important; border-colo
   width:100%;
   flex:1 1 auto;
   min-height:58dvh;
-  overflow-x:auto !important;
+  overflow-x:hidden !important;
   overflow-y:auto !important;
   -webkit-overflow-scrolling:touch;
   scrollbar-gutter:stable both-edges;
  }
  #omapArea table{
-  width:max-content !important;
-  min-width:680px;
-  table-layout:auto !important;
+  width:100% !important;
+  min-width:0 !important;
+  table-layout:fixed !important;
  }
  #omapArea th{
-  padding:5px 6px !important;
-  font-size:8.5px !important;
-  white-space:nowrap;
+  padding:4px 3px !important;
+  font-size:8px !important;
+  white-space:normal !important;
+  word-break:keep-all;
  }
  #omapArea td{
-  padding:5px 6px !important;
-  font-size:8.8px !important;
-  line-height:1.25 !important;
+  padding:4px 3px !important;
+  font-size:8px !important;
+  line-height:1.18 !important;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
  }
  #omapRpanel{
   display:none !important;
@@ -11152,26 +11155,25 @@ function setSalesMobilePanelOpen(forceOpen) {
 
 function bindSalesPanelSwipeClose() {
  const panel = document.querySelector('#salesWrap [data-sales-panel]');
- const handle = panel ? panel.querySelector('.sales-panel-drag-handle') : null;
  const scrollBody = panel ? panel.querySelector('.sales-panel-scroll') : null;
- if (!panel || !handle || handle.dataset.swipeBound === '1') return;
- handle.dataset.swipeBound = '1';
- if (scrollBody) scrollBody.dataset.swipeBound = '1';
+ if (!panel || panel.dataset.swipeBound === '1') return;
+ panel.dataset.swipeBound = '1';
  let startY = 0;
  let startX = 0;
  let dragging = false;
  let deltaY = 0;
- let source = null;
+ let sourceEl = null;
 
- function beginSwipe(e, kind) {
+ function beginSwipe(e) {
   if (!isSalesMobileViewport() || !window._salesMobilePanelOpen) return;
   if (!e.touches || e.touches.length !== 1) return;
-  if (kind === 'body' && scrollBody && scrollBody.scrollTop > 4) return;
+  const targetScroll = e.target && e.target.closest ? e.target.closest('.sales-panel-scroll') : null;
+  if (targetScroll && targetScroll.scrollTop > 4) return;
   startY = e.touches[0].clientY;
   startX = e.touches[0].clientX;
   deltaY = 0;
   dragging = true;
-  source = kind;
+  sourceEl = targetScroll;
   panel.style.transition = 'none';
  }
 
@@ -11184,15 +11186,15 @@ function bindSalesPanelSwipeClose() {
    panel.style.transition = '';
    panel.style.transform = '';
    deltaY = 0;
-   source = null;
+   sourceEl = null;
    return;
   }
-  if (source === 'body' && scrollBody && scrollBody.scrollTop > 4) {
+  if (sourceEl && sourceEl.scrollTop > 4) {
    dragging = false;
    panel.style.transition = '';
    panel.style.transform = '';
    deltaY = 0;
-   source = null;
+   sourceEl = null;
    return;
   }
   deltaY = Math.max(0, moveY);
@@ -11209,25 +11211,13 @@ function bindSalesPanelSwipeClose() {
   panel.style.transform = '';
   if (deltaY > 90) setSalesMobilePanelOpen(false);
   deltaY = 0;
-  source = null;
+  sourceEl = null;
  }
 
- handle.addEventListener('touchstart', function(e) {
-  beginSwipe(e, 'handle');
- }, { passive:true });
- handle.addEventListener('touchmove', moveSwipe, { passive:false });
- handle.addEventListener('touchend', finishSwipe, { passive:true });
- handle.addEventListener('touchcancel', finishSwipe, { passive:true });
-
- if (scrollBody && scrollBody.dataset.swipeListenerBound !== '1') {
-  scrollBody.dataset.swipeListenerBound = '1';
-  scrollBody.addEventListener('touchstart', function(e) {
-   beginSwipe(e, 'body');
-  }, { passive:true });
-  scrollBody.addEventListener('touchmove', moveSwipe, { passive:false });
-  scrollBody.addEventListener('touchend', finishSwipe, { passive:true });
-  scrollBody.addEventListener('touchcancel', finishSwipe, { passive:true });
- }
+ panel.addEventListener('touchstart', beginSwipe, { passive:true });
+ panel.addEventListener('touchmove', moveSwipe, { passive:false });
+ panel.addEventListener('touchend', finishSwipe, { passive:true });
+ panel.addEventListener('touchcancel', finishSwipe, { passive:true });
 }
 
 if (!window._salesMobilePanelResizeBound) {
